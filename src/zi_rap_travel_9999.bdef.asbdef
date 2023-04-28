@@ -1,20 +1,27 @@
 managed;
 //strict ( 2 );
 
-with draft;
+//with draft;
 
 define behavior for ZI_RAP_Travel_9999 alias Travel
-implementation in class zbp_i_rap_travel_9999 unique
-persistent table zrap_atrav_9999
-draft table zrap_dtrav_9999
-lock master total etag LastChangedAt
+//implementation in class zbp_i_rap_travel_9999 unique //Managed Class
+implementation in class zbp_i_rap_travel_9999_u_save unique //Managed umanaged save Class
+
+//persistent table zrap_atrav_9999
+//draft table zrap_dtrav_9999
+with unmanaged save
+
+//lock master total etag LastChangedAt
+lock master
 authorization master ( instance )
 etag master LocalLastChangedAt
 {
   create;
   update;
   delete;
-  association _Booking { create; with draft; }
+//  association _Booking { create; with draft; }
+
+  association _Booking { create; }
 
   field ( numbering : managed, readonly ) TravelUUID;
   field ( readonly ) TravelID, TotalPrice, TravelStatus;
@@ -33,13 +40,13 @@ etag master LocalLastChangedAt
   validation validateCustomer on save { field CustomerID; create; }
   validation validateDates    on save { field BeginDate, EndDate; create; }
 
-  draft determine action Prepare {
-    validation validateAgency;
-    validation validateCustomer;
-    validation validateDates;
-  }
+//  draft determine action Prepare {
+//    validation validateAgency;
+//    validation validateCustomer;
+//    validation validateDates;
+//  }
 
-  mapping for zrap_atrav_9999
+  mapping for zrap_atrav_9999 control zrap_x_atrav_9999 corresponding
   {
     TravelUUID = travel_uuid;
     TravelID = travel_id;
@@ -61,14 +68,19 @@ etag master LocalLastChangedAt
 }
 
 define behavior for ZI_RAP_Booking_9999 alias Booking
-implementation in class zbp_i_rap_booking_9999 unique
-persistent table zrap_abook_9999
-draft table zrap_dbook_9999
+//implementation in class zbp_i_rap_booking_9999 unique //managed class
+implementation in class zbp_i_rap_booking_9999_u_save unique //managed umanaged save class
+
+//persistent table zrap_abook_9999
+//draft table zrap_dbook_9999
+with unmanaged save
+
 lock dependent by _Travel
 authorization dependent by _Travel
 etag master LocalLastChangedAt
 {
-  association _Travel { with draft; }
+//  association _Travel { with draft; }
+  association _Travel { }
 
   update;
   delete;
@@ -80,7 +92,7 @@ etag master LocalLastChangedAt
   determination calculateBookingID  on modify { create; }
   determination calculateTotalPrice on modify { field FlightPrice, CurrencyCode; }
 
-  mapping for zrap_abook_9999
+  mapping for zrap_abook_9999 control zrap_x_abook_9999
   {
     BookingUUID = booking_uuid;
     TravelUUID = travel_uuid;

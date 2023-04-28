@@ -1,5 +1,5 @@
 projection;
-use draft;
+//use draft;
 
 define behavior for ZC_RAP_Travel_9999 alias Travel
 //use etag
@@ -7,7 +7,8 @@ define behavior for ZC_RAP_Travel_9999 alias Travel
   use create;
   use update;
   use delete;
-  use association _Booking { create; with draft; }
+//  use association _Booking { create; with draft; }
+  use association _Booking { create; }
 
   use action acceptTravel;
   use action rejectTravel;
@@ -20,5 +21,6 @@ define behavior for ZC_RAP_Booking_9999 alias Booking
   use update;
   use delete;
 
-  use association _Travel { with draft; }
+//  use association _Travel { with draft; }
+  use association _Travel { }
 }

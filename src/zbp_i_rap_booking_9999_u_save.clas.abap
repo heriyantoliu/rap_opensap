@@ -1,0 +1,5 @@
+CLASS zbp_i_rap_booking_9999_u_save DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zi_rap_travel_9999.
+ENDCLASS.
+
+CLASS zbp_i_rap_booking_9999_u_save IMPLEMENTATION.
+ENDCLASS.
