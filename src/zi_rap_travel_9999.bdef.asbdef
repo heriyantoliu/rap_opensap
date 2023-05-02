@@ -12,7 +12,7 @@ authorization master ( instance )
 etag master LocalLastChangedAt
 {
   create;
-  update;
+  update (precheck);
   delete;
   association _Booking { create; with draft; }
 
@@ -32,11 +32,13 @@ etag master LocalLastChangedAt
   validation validateAgency   on save { field AgencyID; create; }
   validation validateCustomer on save { field CustomerID; create; }
   validation validateDates    on save { field BeginDate, EndDate; create; }
+  validation validateCurrency on save { field CurrencyCode; create; update; }
 
   draft determine action Prepare {
     validation validateAgency;
     validation validateCustomer;
     validation validateDates;
+    validation validateCurrency;
   }
 
   mapping for zrap_atrav_9999

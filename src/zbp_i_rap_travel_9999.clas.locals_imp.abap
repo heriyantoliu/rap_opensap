@@ -40,6 +40,10 @@ CLASS lhc_Travel DEFINITION INHERITING FROM cl_abap_behavior_handler.
 
     METHODS calculateTotalPrice FOR DETERMINE ON MODIFY
       IMPORTING keys FOR Travel~calculateTotalPrice.
+    METHODS precheck_update FOR PRECHECK
+      IMPORTING entities FOR UPDATE Travel.
+    METHODS validateCurrency FOR VALIDATE ON SAVE
+      IMPORTING keys FOR Travel~validateCurrency.
 
     METHODS is_update_granted IMPORTING has_before_image      TYPE abap_bool
                                         overall_status        TYPE /dmo/overall_status
@@ -525,6 +529,55 @@ CLASS lhc_Travel IMPLEMENTATION.
 
     reported = CORRESPONDING #( DEEP execute_reported ).
 
+  ENDMETHOD.
+
+  METHOD precheck_update.
+    loop at entities into data(travel).
+      if travel-CurrencyCode eq 'IDR'.
+        append value #(
+          %key = travel-%key
+          %update = if_abap_behv=>mk-on
+        ) to failed-travel.
+
+        append value #(
+          %key = travel-%key
+          %msg = new_message_with_text(
+                   severity = if_abap_behv_message=>severity-error
+                   text     = 'Currency not valid (PRECHECK)'
+                 )
+          %update = if_abap_behv=>mk-on
+          %element-currencycode = if_abap_behv=>mk-on
+        ) to reported-travel.
+      endif.
+    endloop.
+  ENDMETHOD.
+
+  METHOD validateCurrency.
+    read entities of zi_rap_travel_9999 in local mode
+      entity travel
+        fields ( CurrencyCode )
+      with CORRESPONDING #( keys )
+      result data(travels).
+
+    loop at travels into data(travel).
+      select single * from i_currency
+        into @data(lv_currency)
+        where currency eq @travel-CurrencyCode.
+
+      if sy-subrc ne 0 or lv_currency-currency eq 'SGD'.
+        append value #(
+          %tky = travel-%tky
+        ) to failed-travel.
+
+        append value #(
+          %tky = travel-%tky
+          %msg = new_message_with_text(
+            severity = if_abap_behv_message=>severity-error
+            text = 'Currency Code not valid (VALIDATION)'
+          )
+        ) to reported-travel.
+      endif.
+    endloop.
   ENDMETHOD.
 
 ENDCLASS.
