@@ -59,7 +59,6 @@
        <SERVICE_CONTENT>
         <item>
          <SERVICE_VERSION>0001</SERVICE_VERSION>
-         <SERVICE_PATCH_VERSION>1</SERVICE_PATCH_VERSION>
          <RELEASE_STATE>NOT_RELEASED</RELEASE_STATE>
          <SRVD_REF>
           <URI>/sap/bc/adt/ddic/srvd/sources/zui_rap_travel_9999</URI>

@@ -44,6 +44,8 @@ CLASS lhc_Travel DEFINITION INHERITING FROM cl_abap_behavior_handler.
       IMPORTING entities FOR UPDATE Travel.
     METHODS validateCurrency FOR VALIDATE ON SAVE
       IMPORTING keys FOR Travel~validateCurrency.
+    METHODS setStatusToBooked FOR MODIFY
+      IMPORTING keys FOR ACTION Travel~setStatusToBooked RESULT result.
 
     METHODS is_update_granted IMPORTING has_before_image      TYPE abap_bool
                                         overall_status        TYPE /dmo/overall_status
@@ -317,6 +319,9 @@ CLASS lhc_Travel IMPLEMENTATION.
             ( %tky                 = travel-%tky
               %action-acceptTravel = is_accepted
               %action-rejectTravel = is_rejected
+              %action-setStatusToBooked = COND #( WHEN travel-travelstatus = 'B'
+                                                  THEN if_abap_behv=>fc-o-disabled
+                                                  ELSE if_abap_behv=>fc-o-enabled )
              ) ).
   ENDMETHOD.
 
@@ -532,52 +537,78 @@ CLASS lhc_Travel IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD precheck_update.
-    loop at entities into data(travel).
-      if travel-CurrencyCode eq 'IDR'.
-        append value #(
-          %key = travel-%key
-          %update = if_abap_behv=>mk-on
-        ) to failed-travel.
-
-        append value #(
-          %key = travel-%key
-          %msg = new_message_with_text(
-                   severity = if_abap_behv_message=>severity-error
-                   text     = 'Currency not valid (PRECHECK)'
-                 )
-          %update = if_abap_behv=>mk-on
-          %element-currencycode = if_abap_behv=>mk-on
-        ) to reported-travel.
-      endif.
-    endloop.
+*    loop at entities into data(travel).
+*      if travel-CurrencyCode eq 'IDR'.
+*        append value #(
+*          %key = travel-%key
+*          %update = if_abap_behv=>mk-on
+*        ) to failed-travel.
+*
+*        append value #(
+*          %key = travel-%key
+*          %msg = new_message_with_text(
+*                   severity = if_abap_behv_message=>severity-error
+*                   text     = 'Currency not valid (PRECHECK)'
+*                 )
+*          %update = if_abap_behv=>mk-on
+*          %element-currencycode = if_abap_behv=>mk-on
+*        ) to reported-travel.
+*      endif.
+*    endloop.
   ENDMETHOD.
 
   METHOD validateCurrency.
-    read entities of zi_rap_travel_9999 in local mode
-      entity travel
-        fields ( CurrencyCode )
-      with CORRESPONDING #( keys )
-      result data(travels).
+*    read entities of zi_rap_travel_9999 in local mode
+*      entity travel
+*        fields ( CurrencyCode )
+*      with CORRESPONDING #( keys )
+*      result data(travels).
+*
+*    loop at travels into data(travel).
+*      select single * from i_currency
+*        into @data(lv_currency)
+*        where currency eq @travel-CurrencyCode.
+*
+*      if sy-subrc ne 0 or lv_currency-currency eq 'SGD'.
+*        append value #(
+*          %tky = travel-%tky
+*        ) to failed-travel.
+*
+*        append value #(
+*          %tky = travel-%tky
+*          %msg = new_message_with_text(
+*            severity = if_abap_behv_message=>severity-error
+*            text = 'Currency Code not valid (VALIDATION)'
+*          )
+*        ) to reported-travel.
+*      endif.
+*    endloop.
+  ENDMETHOD.
 
-    loop at travels into data(travel).
-      select single * from i_currency
-        into @data(lv_currency)
-        where currency eq @travel-CurrencyCode.
-
-      if sy-subrc ne 0 or lv_currency-currency eq 'SGD'.
-        append value #(
-          %tky = travel-%tky
-        ) to failed-travel.
-
-        append value #(
-          %tky = travel-%tky
-          %msg = new_message_with_text(
-            severity = if_abap_behv_message=>severity-error
-            text = 'Currency Code not valid (VALIDATION)'
+  METHOD setStatusToBooked.
+    MODIFY ENTITIES OF ZI_RAP_Travel_9999 IN LOCAL MODE
+      ENTITY travel
+        UPDATE FROM VALUE #(
+          FOR key IN keys
+          ( TravelUUID = key-TravelUUID
+            TravelStatus = 'B'
+            %control-TravelStatus = if_abap_behv=>mk-on
           )
-        ) to reported-travel.
-      endif.
-    endloop.
+        )
+      FAILED failed
+      REPORTED reported.
+
+    READ ENTITIES OF zi_rap_travel_9999 IN LOCAL MODE
+      ENTITY travel
+        ALL FIELDS WITH CORRESPONDING #( keys )
+      RESULT DATA(travels).
+
+    result = VALUE #(
+      FOR travel IN travels
+      ( %tky = travel-%tky
+        %param = travel
+      )
+    ).
   ENDMETHOD.
 
 ENDCLASS.

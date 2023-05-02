@@ -25,6 +25,8 @@ etag master LocalLastChangedAt
   action ( features : instance ) rejectTravel result [1] $self;
   internal action recalcTotalPrice;
 
+  action (features : instance ) setStatusToBooked result [1] $self;
+
   determination setInitialStatus on modify { create; }
   determination calculateTotalPrice on modify { field BookingFee, CurrencyCode; }
   determination calculateTravelID on save { create; }
@@ -33,6 +35,11 @@ etag master LocalLastChangedAt
   validation validateCustomer on save { field CustomerID; create; }
   validation validateDates    on save { field BeginDate, EndDate; create; }
   validation validateCurrency on save { field CurrencyCode; create; update; }
+
+  draft action Edit;
+  draft action Activate;
+  draft action Discard;
+  draft action Resume;
 
   draft determine action Prepare {
     validation validateAgency;

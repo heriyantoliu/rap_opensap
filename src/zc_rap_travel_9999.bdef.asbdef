@@ -11,6 +11,8 @@ define behavior for ZC_RAP_Travel_9999 alias Travel
 
   use action acceptTravel;
   use action rejectTravel;
+
+  use action setStatusToBooked;
 }
 
 

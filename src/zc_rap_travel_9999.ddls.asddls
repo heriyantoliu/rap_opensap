@@ -27,8 +27,8 @@
        TotalPrice,
        @Consumption.valueHelpDefinition: [{ entity: { name: 'I_Currency', element: 'Currency'} }]
        CurrencyCode,
-       Description,
-       TravelStatus,
+       Description,       
+       TravelStatus,       
        LastChangedAt,
        LocalLastChangedAt,
 
